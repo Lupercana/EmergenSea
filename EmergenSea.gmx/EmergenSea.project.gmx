@@ -8,12 +8,14 @@
   <sprites name="sprites">
     <sprite>sprites\sp_boat</sprite>
     <sprite>sprites\sp_rope_grain</sprite>
+    <sprite>sprites\sp_circle</sprite>
     <sprites name="enemies">
       <sprite>sprites\sp_enemy_x</sprite>
     </sprites>
     <sprites name="allies">
       <sprite>sprites\sp_ally_x</sprite>
     </sprites>
+    <sprite>sprites\sprite4</sprite>
   </sprites>
   <backgrounds name="background">
     <background>background\bg_sea</background>
@@ -23,6 +25,7 @@
     <object>objects\obj_cmd</object>
     <object>objects\obj_boat</object>
     <object>objects\obj_rope</object>
+    <object>objects\obj_circle</object>
     <objects name="enemies">
       <object>objects\obj_enemy_x</object>
     </objects>

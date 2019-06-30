@@ -31,10 +31,19 @@ global.ROPE_COLLI_RAD = 10; // Pixels
 
 /* Global Variables */
 global.mouse_on = false;
+global.lead_rope_id = 0;
 
 /* Command-Only Variables */
+last_rope_id = 0;
 last_rope_x = -1;
 last_rope_y = -1;
+cir_count = 0;
+cir_center_x = 0;
+cir_center_y = 0;
+cir_up = room_height;
+cir_down = 0;
+cir_left = room_width;
+cir_right = 0;
 </string>
           </argument>
         </arguments>
@@ -64,7 +73,7 @@ if (global.mouse_on)
     var on_rope = position_meeting(mouse_x, mouse_y, obj_rope);
     
     var can_spawn = true;   
-    if (last_rope_x &gt;= 0) // First spawn
+    if (last_rope_x &gt;= 0) // Not first spawn
     {
         if (point_distance(mouse_x, mouse_y, last_rope_x, last_rope_y) &lt; global.ROPE_SPAWN_MIN_DIST)   
             can_spawn = false;
@@ -72,15 +81,67 @@ if (global.mouse_on)
 
     if (can_spawn)
     {        
-        instance_create(mouse_x, mouse_y, obj_rope);
+        var rope_id = instance_create(mouse_x, mouse_y, obj_rope);
+        if (last_rope_id != 0) // Not first node
+            last_rope_id.child_id = rope_id; // Construct a linked list of rope nodes
+        last_rope_id = rope_id;
         last_rope_x = mouse_x;
         last_rope_y = mouse_y;
     }
 }
 else
 {
+    last_rope_id = 0;
     last_rope_x = -1;
     last_rope_y = -1;
+
+    if (global.lead_rope_id &gt; 0) // Destroy all rope instances
+    {
+        var rope_node_id = global.lead_rope_id;
+        while (rope_node_id != 0)
+        {
+            // Update circle for waste removal
+            ++cir_count;
+            cir_center_x += rope_node_id.x;
+            cir_center_y += rope_node_id.y;
+            if (rope_node_id.y &lt; cir_up)
+                cir_up = rope_node_id.y;
+            if (rope_node_id.y &gt; cir_down)
+                cir_down = rope_node_id.y;
+            if (rope_node_id.x &lt; cir_left)
+                cir_left = rope_node_id.x;
+            if (rope_node_id.x &gt; cir_right)
+                cir_right = rope_node_id.x;    
+        
+            rope_node_id = rope_node_id.child_id;
+        }
+    
+        instance_destroy(obj_rope);
+        
+        var avg_center_x = cir_center_x / cir_count;
+        var avg_center_y = cir_center_y / cir_count;
+    
+        // Create circle and destroy waste inside
+        var dist_up = avg_center_y - cir_up;
+        var dist_down = cir_down - avg_center_y;
+        var dist_right = cir_right - avg_center_x;
+        var dist_left = avg_center_x - cir_left;
+        var min_rad_height = min(dist_up, dist_down);
+        var min_rad_width = min(dist_left, dist_right);
+        var cir_id = instance_create(avg_center_x, avg_center_y, obj_circle);
+        cir_id.image_xscale = min_rad_width / sprite_get_width(sp_circle) * 2.0;
+        cir_id.image_yscale = min_rad_height / sprite_get_height(sp_circle) * 2.0;
+                
+        // Reset variables
+        cir_count = 0;
+        cir_center_x = 0;
+        cir_center_y = 0;
+        cir_up = room_height;
+        cir_down = 0;
+        cir_left = room_width;
+        cir_right = 0;
+        global.lead_rope_id = 0;
+    }
 }
 </string>
           </argument>
